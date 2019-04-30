@@ -1,14 +1,37 @@
 from bsc import compress_file, decompress_file
+from os import remove, path
+from filecmp import cmp
+from time import sleep
 
-compress_file("test/text/test.txt", "test/text/test.bsc")
-decompress_file("test/text/test.bsc", "test/text/test_out.txt")
 
-compress_file("test/text/test_lang.txt", "test/text/test_lang.bsc")
-decompress_file("test/text/test_lang.bsc", "test/text/test_lang_out.txt")
+def test(name, file, out):
+    compress_file(file, "tmp.bsc")
+    decompress_file("tmp.bsc", out)
 
-compress_file("test/binary/test.xlsx", "test/binary/test.bsc")
-decompress_file("test/binary/test.bsc", "test/binary/test_out.xlsx")
+    bw = "Test " + name + " "
+    if cmp(file, out):
+        bw += "👍"
+    else:
+        bw += "👎"
 
-compress_file("test/images/test.jpg", "test/images/test.bsc")
-decompress_file("test/images/test.bsc", "test/images/test_out.jpg")
+    rate = (path.getsize("tmp.bsc") / path.getsize(file)) * 100 - 100
+    bw += " " + str(rate) + " % compression rate "
 
+    if rate < 0:
+        bw += "🙂"
+    else:
+        bw += "😪"
+
+    print(bw)
+
+    remove(out)
+    remove("tmp.bsc")
+
+tests = [
+    ["Hello World", "test/text/test.txt", "test/text/test_out.txt"],
+    ["Long Text", "test/text/test_lang.txt", "test/text/test_lang_out.txt"],
+    ["Excel File", "test/binary/test.xlsx", "test/binary/test_out.xlsx"],
+    ["Image", "test/images/test.jpg", "test/images/test_out.jpg"],
+]
+
+[test(t[0], t[1], t[2]) for t in tests]
