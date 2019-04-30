@@ -43,17 +43,16 @@ def compress(txt):
 
     for sym in feq:
         fq = feq[sym]
-        if fq < 2**8:
-            # Use B
-            yield pack('B', 1)
-            yield pack('B', fq)
+        if fq < 2**8 - 2:
+            # Use next Byte to pack small int, first 0x01 and 0x02 are reserved values.
+            yield pack('B', fq + 2)
         elif fq < 4**8:
             # Use H
-            yield pack('B', 2)
+            yield pack('B', 1)
             yield pack('H', fq)
         elif fq < 8**8:
             # Use I
-            yield pack('B', 3)
+            yield pack('B', 2)
             yield pack('I', fq)
         else:
             raise FrequencyOverflowException("Symbol " + sym + " occurred " + fq + " times, we cannot handle that.")
@@ -80,13 +79,11 @@ def decompress(txt):
 
         fqc, fq = unpack('B', buff.read(1))[0], 0
         if fqc is 0x01:
-            fq = unpack('B', buff.read(1))[0]
-        elif fqc is 0x02:
             fq = unpack('H', buff.read(2))[0]
-        elif fqc is 0x03:
+        elif fqc is 0x02:
             fq = unpack('I', buff.read(4))[0]
         else:
-            raise FrequencyOverflowException()
+            fq = fqc - 2
 
         sym = unpack('B', buff.read(1))[0]
         blen += fq
