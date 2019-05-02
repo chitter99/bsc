@@ -3,9 +3,11 @@ from collections import Counter
 from struct import pack, unpack
 from bitarray import bitarray
 from io import BytesIO
+from simplecrypt import encrypt, decrypt, DecryptionException
 
 
 BSC_HEADER_FLAG = b'bsc\0'
+BSC_HEADER_FLAG_PW = b'pbc\0'
 
 
 class FrequencyOverflowException(Exception):
@@ -16,50 +18,80 @@ class InvalidFileFormatException(Exception):
     pass
 
 
-def compress_file(file, target):
+class InvalidPasswordException(Exception):
+    pass
+
+
+def compress_file(file, target, password=None):
     with open(file, 'rb') as i:
         text = i.read()
         with open(target, 'wb') as o:
-            for s in compress(text):
-                o.write(s)
+            if password is None:
+                o.write(compress(text))
+            else:
+                o.write(compress_password(text, password))
             o.close()
         i.close()
 
 
-def decompress_file(file, target):
+def decompress_file(file, target, password=None):
     with open(file, 'rb') as i:
         text = i.read()
         with open(target, 'wb') as o:
-            o.write(decompress(text))
+            if password is None:
+                o.write(decompress(text))
+            else:
+                o.write(decompress_password(text, password))
             o.close()
         i.close()
+
+
+def compress_password(txt, password):
+    con = bytearray()
+    con += BSC_HEADER_FLAG_PW
+    con += bytes(encrypt(password, bytes(compress(txt))))
+    return con
+
+
+def decompress_password(txt, password):
+    buff = BytesIO(memoryview(txt))
+
+    if buff.read(len(BSC_HEADER_FLAG_PW)) != BSC_HEADER_FLAG_PW:
+        raise InvalidFileFormatException()
+
+    try:
+        return decompress(decrypt(password, buff.read()))
+    except DecryptionException:
+        raise InvalidPasswordException()
 
 
 def compress(txt):
+    con = bytearray()
     feq = Counter(txt)
     out = apply(encode(feq), txt)
 
-    yield BSC_HEADER_FLAG
+    con += BSC_HEADER_FLAG
 
     for sym in feq:
         fq = feq[sym]
         if fq < 2**8 - 2:
             # Use next Byte to pack small int, first 0x01 and 0x02 are reserved values.
-            yield pack('B', fq + 2)
+            con += pack('B', fq + 2)
         elif fq < 4**8:
             # Use H
-            yield pack('B', 1)
-            yield pack('H', fq)
+            con += pack('B', 1)
+            con += pack('H', fq)
         elif fq < 8**8:
             # Use I
-            yield pack('B', 2)
-            yield pack('I', fq)
+            con += pack('B', 2)
+            con += pack('I', fq)
         else:
             raise FrequencyOverflowException("Symbol " + sym + " occurred " + fq + " times, we cannot handle that.")
-        yield pack('B', sym)
+        con += pack('B', sym)
 
-    yield BSC_HEADER_FLAG
-    yield bitarray(out).tobytes()
+    con += BSC_HEADER_FLAG
+    con += bitarray(out).tobytes()
+    return con
 
 
 def decompress(txt):

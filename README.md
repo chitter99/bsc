@@ -4,8 +4,12 @@ Simple compression algorithm with huffman written in python. Let's be honest, bs
 # usage
 
 ```
+# Simple compression
 py run.py helloworld.txt
 py run.py -d --out helloworld.txt helloworld.bsc
+# Password protected compression
+py run.py -p 123456 nudes.jpg
+py run.py -d --out nudes.jpg -p 123456 nudes.bsc
 ```
 
 # test

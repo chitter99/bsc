@@ -1,2 +1,3 @@
 argparse==1.4
 bitarray==0.8.3
+simple-crypt==4.1.7
