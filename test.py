@@ -4,9 +4,9 @@ from filecmp import cmp
 from time import sleep
 
 
-def test(name, file, out):
-    compress_file(file, "tmp.bsc")
-    decompress_file("tmp.bsc", out)
+def test(name, file, out, pw=None):
+    compress_file(file, "tmp.bsc", pw)
+    decompress_file("tmp.bsc", out, pw)
 
     bw = "Test " + name + " "
     if cmp(file, out):
@@ -28,10 +28,14 @@ def test(name, file, out):
     remove("tmp.bsc")
 
 tests = [
-    ["Hello World", "test/text/test.txt", "test/text/test_out.txt"],
-    ["Long Text", "test/text/test_lang.txt", "test/text/test_lang_out.txt"],
-    ["Excel File", "test/binary/test.xlsx", "test/binary/test_out.xlsx"],
-    ["Image", "test/images/test.jpg", "test/images/test_out.jpg"],
+    ["Hello World", "test/text/test.txt", "test/text/test_out.txt", None],
+    ["Hello World with Password", "test/text/test.txt", "test/text/test_out.txt", "123456"],
+    ["Long Text", "test/text/test_lang.txt", "test/text/test_lang_out.txt", None],
+    ["Long Text with Password", "test/text/test_lang.txt", "test/text/test_lang_out.txt", "123456"],
+    ["Excel File", "test/binary/test.xlsx", "test/binary/test_out.xlsx", None],
+    ["Excel with File", "test/binary/test.xlsx", "test/binary/test_out.xlsx", "123456"],
+    ["Image", "test/images/test.jpg", "test/images/test_out.jpg", None],
+    ["Image with ", "test/images/test.jpg", "test/images/test_out.jpg", "123456"]
 ]
 
-[test(t[0], t[1], t[2]) for t in tests]
+[test(t[0], t[1], t[2], t[3]) for t in tests]
