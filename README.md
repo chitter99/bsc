@@ -18,3 +18,17 @@ py run.py -d --out nudes.jpg -p 123456 nudes.bsc
 py test.py 
 ```
 
+# API Usage
+Simple compression and decompression.
+```python
+from bsc import compress_file
+compress_file("myfile.txt", "myfile.bsc")
+dempress_file("myfile.bsc", "myfile_out.txt")
+```
+Password protected compression and decompression.
+```python
+from bsc import compress_file
+compress_file("myfile.txt", "myfile.bsc", 12345)
+dempress_file("myfile.bsc", "myfile_out.txt", 12345)
+```
+
