@@ -33,9 +33,9 @@ tests = [
     ["Long Text", "test/text/test_lang.txt", "test/text/test_lang_out.txt", None],
     ["Long Text with Password", "test/text/test_lang.txt", "test/text/test_lang_out.txt", "123456"],
     ["Excel File", "test/binary/test.xlsx", "test/binary/test_out.xlsx", None],
-    ["Excel with File", "test/binary/test.xlsx", "test/binary/test_out.xlsx", "123456"],
+    ["Excel with Password", "test/binary/test.xlsx", "test/binary/test_out.xlsx", "123456"],
     ["Image", "test/images/test.jpg", "test/images/test_out.jpg", None],
-    ["Image with ", "test/images/test.jpg", "test/images/test_out.jpg", "123456"]
+    ["Image with Password", "test/images/test.jpg", "test/images/test_out.jpg", "123456"]
 ]
 
 [test(t[0], t[1], t[2], t[3]) for t in tests]
