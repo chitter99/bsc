@@ -11,18 +11,22 @@ BSC_HEADER_FLAG_PW = b'pbc\0'
 
 
 class FrequencyOverflowException(Exception):
+    """File has char frequency we cannot handle"""
     pass
 
 
 class InvalidFileFormatException(Exception):
+    """File does not contain BSC Header on first 4 bytes"""
     pass
 
 
 class InvalidPasswordException(Exception):
+    """Password is unable to decrypt file"""
     pass
 
 
 def compress_file(file, target, password=None):
+    """Compress file and save to target location"""
     with open(file, 'rb') as i:
         text = i.read()
         with open(target, 'wb') as o:
@@ -35,6 +39,7 @@ def compress_file(file, target, password=None):
 
 
 def decompress_file(file, target, password=None):
+    """Decompress file and save to target location"""
     with open(file, 'rb') as i:
         text = i.read()
         with open(target, 'wb') as o:
@@ -47,6 +52,7 @@ def decompress_file(file, target, password=None):
 
 
 def compress_password(txt, password):
+    """Compress text with password"""
     con = bytearray()
     con += BSC_HEADER_FLAG_PW
     con += bytes(encrypt(password, bytes(compress(txt))))
@@ -54,6 +60,7 @@ def compress_password(txt, password):
 
 
 def decompress_password(txt, password):
+    """Decompress text with password"""
     buff = BytesIO(memoryview(txt))
 
     if buff.read(len(BSC_HEADER_FLAG_PW)) != BSC_HEADER_FLAG_PW:
@@ -66,6 +73,7 @@ def decompress_password(txt, password):
 
 
 def compress(txt):
+    """Compress text with password"""
     con = bytearray()
     feq = Counter(txt)
     out = apply(encode(feq), txt)
@@ -86,7 +94,7 @@ def compress(txt):
             con += pack('B', 2)
             con += pack('I', fq)
         else:
-            raise FrequencyOverflowException("Symbol " + sym + " occurred " + fq + " times, we cannot handle that.")
+            raise FrequencyOverflowException("Symbol " + sym + " occurred " + fq + " times, we cannot handle that!")
         con += pack('B', sym)
 
     con += BSC_HEADER_FLAG
@@ -95,6 +103,7 @@ def compress(txt):
 
 
 def decompress(txt):
+    """Decompress text with password"""
     buff = BytesIO(memoryview(txt))
 
     if buff.read(len(BSC_HEADER_FLAG)) != BSC_HEADER_FLAG:
@@ -115,6 +124,7 @@ def decompress(txt):
         elif fqc is 0x02:
             fq = unpack('I', buff.read(4))[0]
         else:
+            # Subtract 2 from fqc because first two values are reserved
             fq = fqc - 2
 
         sym = unpack('B', buff.read(1))[0]
@@ -124,6 +134,7 @@ def decompress(txt):
     buff.close()
 
     out = bitarray()
+    # Cut off unnecessary parts
     out.frombytes(txt[txt.index(BSC_HEADER_FLAG, len(BSC_HEADER_FLAG))+len(BSC_HEADER_FLAG):])
     return reverse(encode(huff), out, blen)
 

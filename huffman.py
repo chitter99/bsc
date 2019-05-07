@@ -17,6 +17,7 @@ def encode(symb2freq):
 
 
 def apply(huff, txt):
+    """Encode txt with huffman codes and return string"""
     out = ""
     for c in txt:
         for p in huff:
@@ -26,6 +27,7 @@ def apply(huff, txt):
 
 
 def reverse(huff, txt, leng):
+    """Decode huffman encoded txt with huffman codes and return with len defined byte array"""
     out = bytearray()
     curr = ""
     for c in txt:
